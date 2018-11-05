@@ -14,5 +14,6 @@ A Flutter project for V2EX.
   - [ ] 解析 markdown 或者 html
   - [ ] 上滑加载更多回复
 
-- [ ] 切换分区
+- [ ] 路由携带参数切换
+- [ ] 切换分区(tab)
 - [ ] 登录（回帖、发帖、签到等）
