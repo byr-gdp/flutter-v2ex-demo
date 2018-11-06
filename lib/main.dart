@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:convert';
+import './model/TopicListItemModel.dart';
 import './detail.dart';
 
 void main() => runApp(MyApp());
@@ -55,6 +58,7 @@ class _MyHomePageState extends State < MyHomePage > {
             return i;
         }
     });
+    List _listData = [];
 
 
     ScrollController _scrollController = new ScrollController();
@@ -64,6 +68,28 @@ class _MyHomePageState extends State < MyHomePage > {
         return Future.delayed(Duration(seconds: 2), () {
             return List.generate(to - from, (i) => i + from);
         });
+    }
+
+    _fetchListData() async {
+        // 异步获取列表数据
+        var hotApiUrl = 'https://www.v2ex.com/api/topics/hot.json';
+        var httpClient = new HttpClient();
+        List < dynamic > data = [];
+        try {
+            var request = await httpClient.getUrl(Uri.parse(hotApiUrl));
+            var response = await request.close();
+
+            if (response.statusCode == HttpStatus.ok) {
+                var resultStr = await response.transform(utf8.decoder).join();
+                data = json.decode(resultStr);
+                print("fetch success");
+                setState(() {
+                    _listData = data;
+                });
+            }
+        } catch (e) {
+            print(e);
+        }
     }
 
     void _loadMore() async {
@@ -102,6 +128,7 @@ class _MyHomePageState extends State < MyHomePage > {
                 _loadMore();
             }
         });
+        _fetchListData();
     }
 
     @override
@@ -148,7 +175,8 @@ class _MyHomePageState extends State < MyHomePage > {
             //     ),
             // ),
             body: ListView.builder(
-                itemCount: items.length,
+                // itemCount: items.length,
+                itemCount: _listData.length + 1,
                 // itemBuilder: (context, index) {
                 //     // 为了渲染加载条采用的 hack 方式
                 //     if (items[index] == -1) {
@@ -158,19 +186,65 @@ class _MyHomePageState extends State < MyHomePage > {
                 //     }
                 // },
                 itemBuilder: (context, index) {
-                    if (items[index] == -1) {
+                    // if (items[index] == -1) {
+                    if (_listData.length == index) {
                         return _buildProgressIndicator();
                     } else {
+                        var el = _listData[index];
+                        var model = new TopicListItemModel.fromJson(el);
+                        // print(model.title);
                         return new GestureDetector(
+                            // onTap: () {
+                            //     print(index);
+                            //     // Navigator
+                            //     Navigator.of(context).push(new MaterialPageRoute(builder: (_) {
+                            //         return new Detail(id: index.toString());
+                            //         // return new SecondPage(title: index.toString());
+                            //     }));
+                            // },
+                            // child: ListTile(title: new Text("Number $index")),
                             onTap: () {
-                                print(index);
-                                // Navigator
+                                print("tap topic id " + model.id.toString());
+                                // print(el['id']);
                                 Navigator.of(context).push(new MaterialPageRoute(builder: (_) {
-                                    return new Detail(id: index.toString());
-                                    // return new SecondPage(title: index.toString());
+                                    return new Detail(id: model.id.toString());
                                 }));
                             },
-                            child: ListTile(title: new Text("Number $index")),
+                            child: new Container(
+                                padding: const EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 5.0),
+                                    child: new Row(
+                                        children: [
+                                            new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
+                                            new Expanded(
+                                                child: new Container(
+                                                    margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                                        child: new Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: [
+                                                                new Container(
+                                                                    padding: const EdgeInsets.only(bottom: 2.0),
+                                                                        child: new Text(
+                                                                            el['title'],
+                                                                            maxLines: 1,
+                                                                            style: new TextStyle(
+                                                                                fontWeight: FontWeight.bold,
+                                                                            ),
+                                                                        ),
+                                                                ),
+                                                                new Text(
+                                                                    '最后回复：' + el['last_reply_by'],
+                                                                    style: new TextStyle(
+                                                                        color: Colors.grey[500],
+                                                                    ),
+                                                                ),
+                                                            ],
+                                                        )
+                                                ),
+                                            ),
+                                            new Text(el['replies'].toString()),
+                                        ],
+                                    ),
+                            )
                         );
                     }
                 },
