@@ -1,6 +1,10 @@
 import './MemberModel.dart';
 import './NodeModel.dart';
 
+/**
+ * 帖子详情接口：https://www.v2ex.com/api/topics/show.json?id=504530
+ */
+
 class TopicDetailModel {
   Node node;
   Member member;

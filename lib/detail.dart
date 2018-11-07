@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html_view/flutter_html_view.dart';
 import 'dart:io';
 import 'dart:convert';
+import 'package:intl/intl.dart';
 
 class Detail extends StatefulWidget {
     Detail({
@@ -29,6 +31,7 @@ class _DetailState extends State < Detail > {
     Future < void > _fetchTopicData(String id) async {
         print("topic id is" + id);
         var url = "https://www.v2ex.com/api/topics/show.json?id=${id}";
+        print("topic data: " + url);
         var httpClient = new HttpClient();
         List data = [];
         try {
@@ -50,7 +53,7 @@ class _DetailState extends State < Detail > {
     Future < void > _fetchTopicReplyData(String id) async {
         print('in fetch reply data');
         var url = "https://www.v2ex.com/api/replies/show.json?topic_id=${id}";
-        print(url);
+        print("reply list:" + url);
         var httpClient = new HttpClient();
         List data = [];
         try {
@@ -100,12 +103,14 @@ class _DetailState extends State < Detail > {
                 ),
                 onTap: () {
                     print("tap");
-                    _loadMore();
                 }
             );
         } else {
             Widget titleSection = new Container(
                 padding: EdgeInsetsDirectional.fromSTEB(15.0, 10.0, 15.0, 10.0),
+                decoration: new BoxDecoration(
+                    border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
+                ),
                 child: new Text(
                     _topicData != null ? _topicData['title'] : '加载中',
                     style: new TextStyle(
@@ -118,19 +123,24 @@ class _DetailState extends State < Detail > {
             // FIXME: 如何渲染 HTML
             Widget contentSection = new Container(
                 padding: EdgeInsetsDirectional.fromSTEB(15.0, 10.0, 15.0, 10.0),
-                child: new Text(
-                    _topicData != null ? _topicData['content'] : '无',
-                    style: new TextStyle(
-                        fontSize: 14.0,
-                    ),
+                decoration: new BoxDecoration(
+                    border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
                 ),
+                child: _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : new Text('无'),
+                // child: new Text(
+                //     _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : '无',
+                //     style: new TextStyle(
+                //         fontSize: 14.0,
+                //     ),
+                // ),
             );
 
             var rows = _buildReplyRows();
             List < Widget > widgetList = [titleSection, contentSection];
-            rows.forEach((el) {
-                widgetList.add(el);
-            });
+            // rows.forEach((el) {
+            //     widgetList.add(el);
+            // });
+            widgetList.addAll(rows);
             print("rows " + rows.length.toString());
 
             return new ListView(
@@ -149,50 +159,70 @@ class _DetailState extends State < Detail > {
 
         print('build reply row not null');
 
-        var floorCount = 1;
-
         _repliesData.forEach((el) {
+            var floor = _repliesData.indexOf(el);
+            var date = new DateTime.fromMillisecondsSinceEpoch(el['created'] * 1000);
+            var format = new DateFormat('y-MM-dd HH:mm');
+            var formatDate = format.format(date);
+
             var row = new GestureDetector(
                 onTap: () {
                     print('tap');
                 },
                 child: new Container(
-                    padding: const EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 5.0),
-                        child: new Row(
-                            children: [
-                                new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
-                                new Expanded(
-                                    child: new Container(
-                                        margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                                            child: new Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                    new Container(
-                                                        padding: const EdgeInsets.only(bottom: 2.0),
-                                                            child: new Text(
-                                                                el['content'],
-                                                                maxLines: 1,
-                                                                style: new TextStyle(
-                                                                    fontWeight: FontWeight.bold,
+                    padding: const EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                    decoration: new BoxDecoration(
+                        border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
+                    ),
+                    child: new Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                            new Row(
+                                children: [
+                                    new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
+                                    new Expanded(
+                                        child: new Container(
+                                            margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                                child: new Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                        new Container(
+                                                            padding: const EdgeInsets.only(bottom: 2.0),
+                                                                child: new Text(
+                                                                    el['member']['username'],
+                                                                    maxLines: null,
+                                                                    // style: new TextStyle(
+                                                                    //     fontWeight: FontWeight.bold,
+                                                                    // ),
                                                                 ),
-                                                            ),
-                                                    ),
-                                                    // new Text(
-                                                    //   '最后回复：' + el['last_reply_by'],
-                                                    //   style: new TextStyle(
-                                                    //     color: Colors.grey[500],
-                                                    //   ),
-                                                    // ),
-                                                ],
-                                            )
+                                                        ),
+                                                        new Text("${floor + 1}楼 回复时间: ${formatDate}"),
+                                                        // new Text(
+                                                        //   '最后回复：' + el['last_reply_by'],
+                                                        //   style: new TextStyle(
+                                                        //     color: Colors.grey[500],
+                                                        //   ),
+                                                        // ),
+                                                    ],
+                                                )
+                                        ),
+                                    ),
+                                ],
+                            ),
+                            new Container(
+                                padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0.0),
+                                child: new Text(
+                                    el['content'],
+                                    style: new TextStyle(
+                                        fontWeight: FontWeight.bold,
                                     ),
                                 ),
-                                new Text(floorCount.toString()),
-                            ],
-                        ),
+                            )
+                        ]
+                    )
                 )
             );
-            floorCount += 1;
+
             rows.add(row);
         });
 

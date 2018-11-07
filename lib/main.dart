@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
                 // "hot reload" (press "r" in the console where you ran "flutter run",
                 // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
                 // counter didn't reset back to zero; the application is not restarted.
-                primarySwatch: Colors.blue,
+                primarySwatch: Colors.grey,
             ),
             home: MyHomePage(title: 'V2EX'),
         );
@@ -58,8 +58,11 @@ class _MyHomePageState extends State < MyHomePage > {
             return i;
         }
     });
+    // 列表数据
     List _listData = [];
 
+    // 当前 tab 下标。0 最热 1 最新。
+    int _currentIndex = 0;
 
     ScrollController _scrollController = new ScrollController();
     bool isLoading = false;
@@ -70,13 +73,25 @@ class _MyHomePageState extends State < MyHomePage > {
         });
     }
 
-    _fetchListData() async {
+    /**
+     * 根据当前 tab 获取列表数据
+     * 0: 最热，1: 最新
+     */
+    _fetchListData(int index) async {
         // 异步获取列表数据
         var hotApiUrl = 'https://www.v2ex.com/api/topics/hot.json';
+        var latestApiUrl = 'https://www.v2ex.com/api/topics/latest.json';
+        var url = index == 0 ? hotApiUrl : latestApiUrl;
         var httpClient = new HttpClient();
         List < dynamic > data = [];
+
+        if (isLoading) {
+            return;
+        }
+
+        setState(() => isLoading = true);
         try {
-            var request = await httpClient.getUrl(Uri.parse(hotApiUrl));
+            var request = await httpClient.getUrl(Uri.parse(url));
             var response = await request.close();
 
             if (response.statusCode == HttpStatus.ok) {
@@ -90,122 +105,38 @@ class _MyHomePageState extends State < MyHomePage > {
         } catch (e) {
             print(e);
         }
+        setState(() => isLoading = false);
     }
 
-    void _loadMore() async {
-        if (!isLoading) {
-            // isLoading = true;
-            setState(() => isLoading = true);
-            List < int > newItems = await fakeRequest(items.length, items.length + 10);
-            setState(() {
-                // items.addAll(newItems);
-                items.insertAll(items.length - 2, newItems);
-                isLoading = false;
-            });
-        }
-    }
+    // void _loadMore() async {
+    //     if (!isLoading) {
+    //         // isLoading = true;
+    //         setState(() => isLoading = true);
+    //         List < int > newItems = await fakeRequest(items.length, items.length + 10);
+    //         setState(() {
+    //             // items.addAll(newItems);
+    //             items.insertAll(items.length - 2, newItems);
+    //             isLoading = false;
+    //         });
+    //     }
+    // }
 
-    Widget _buildProgressIndicator() {
-        print("build progress");
-        return new Padding(
-            padding: const EdgeInsets.all(8.0),
-                child: new Center(
-                    child: new Opacity(
-                        opacity: isLoading ? 1.0 : 0.0,
-                        // opacity: 0.8,
-                        child: new CircularProgressIndicator(),
-                    ),
-                ),
-        );
-    }
-
-    @override
-    void initState() {
-        super.initState();
-        _scrollController.addListener(() {
-            if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-                print("ready to load");
-                _loadMore();
-            }
-        });
-        _fetchListData();
-    }
-
-    @override
-    Widget build(BuildContext context) {
-        // This method is rerun every time setState is called, for instance as done
-        // by the _incrementCounter method above.
-        //
-        // The Flutter framework has been optimized to make rerunning build methods
-        // fast, so that you can just rebuild anything that needs updating rather
-        // than having to individually change instances of widgets.
-        return Scaffold(
-            appBar: AppBar(
-                // Here we take the value from the MyHomePage object that was created by
-                // the App.build method, and use it to set our appbar title.
-                title: Text(widget.title),
-            ),
-            // body: Center(
-            //     // Center is a layout widget. It takes a single child and positions it
-            //     // in the middle of the parent.
-            //     child: Column(
-            //         // Column is also layout widget. It takes a list of children and
-            //         // arranges them vertically. By default, it sizes itself to fit its
-            //         // children horizontally, and tries to be as tall as its parent.
-            //         //
-            //         // Invoke "debug paint" (press "p" in the console where you ran
-            //         // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-            //         // window in IntelliJ) to see the wireframe for each widget.
-            //         //
-            //         // Column has various properties to control how it sizes itself and
-            //         // how it positions its children. Here we use mainAxisAlignment to
-            //         // center the children vertically; the main axis here is the vertical
-            //         // axis because Columns are vertical (the cross axis would be
-            //         // horizontal).
-            //         mainAxisAlignment: MainAxisAlignment.center,
-            //         children: < Widget > [
-            //             Text(
-            //                 'You have pushed the button this many times:',
-            //             ),
-            //             Text(
-            //                 '$_counter',
-            //                 style: Theme.of(context).textTheme.display1,
-            //             ),
-            //         ],
-            //     ),
-            // ),
-            body: ListView.builder(
-                // itemCount: items.length,
-                itemCount: _listData.length + 1,
-                // itemBuilder: (context, index) {
-                //     // 为了渲染加载条采用的 hack 方式
-                //     if (items[index] == -1) {
-                //         return _buildProgressIndicator();
-                //     } else {
-                //         return ListTile(title: new Text("Number $index"));
-                //     }
-                // },
+    Widget _buildBodyView() {
+        if (isLoading) {
+            return _buildProgressIndicator();
+        } else {
+            return ListView.builder(
+                itemCount: _listData.length,
                 itemBuilder: (context, index) {
                     // if (items[index] == -1) {
-                    if (_listData.length == index) {
+                    if (isLoading) {
                         return _buildProgressIndicator();
                     } else {
                         var el = _listData[index];
                         var model = new TopicListItemModel.fromJson(el);
-                        // print(model.title);
                         return new GestureDetector(
-                            // onTap: () {
-                            //     print(index);
-                            //     // Navigator
-                            //     Navigator.of(context).push(new MaterialPageRoute(builder: (_) {
-                            //         return new Detail(id: index.toString());
-                            //         // return new SecondPage(title: index.toString());
-                            //     }));
-                            // },
-                            // child: ListTile(title: new Text("Number $index")),
                             onTap: () {
                                 print("tap topic id " + model.id.toString());
-                                // print(el['id']);
                                 Navigator.of(context).push(new MaterialPageRoute(builder: (_) {
                                     return new Detail(id: model.id.toString());
                                 }));
@@ -249,12 +180,75 @@ class _MyHomePageState extends State < MyHomePage > {
                     }
                 },
                 controller: _scrollController,
+            );
+        }
+    }
+
+    Widget _buildProgressIndicator() {
+        print("build progress");
+        return new Padding(
+            padding: const EdgeInsets.all(8.0),
+                child: new Center(
+                    child: new Opacity(
+                        opacity: isLoading ? 1.0 : 0.0,
+                        // opacity: 0.8,
+                        child: new CircularProgressIndicator(),
+                    ),
+                ),
+        );
+    }
+
+    @override
+    void initState() {
+        super.initState();
+        // 监听 list 滑动到底部
+        // _scrollController.addListener(() {
+        //     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+        //         print("ready to load");
+        //         _loadMore();
+        //     }
+        // });
+        _fetchListData(_currentIndex);
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        // This method is rerun every time setState is called, for instance as done
+        // by the _incrementCounter method above.
+        //
+        // The Flutter framework has been optimized to make rerunning build methods
+        // fast, so that you can just rebuild anything that needs updating rather
+        // than having to individually change instances of widgets.
+        return Scaffold(
+            appBar: AppBar(
+                // Here we take the value from the MyHomePage object that was created by
+                // the App.build method, and use it to set our appbar title.
+                title: Text(widget.title),
             ),
-            // floatingActionButton: FloatingActionButton(
-            //   onPressed: _incrementCounter,
-            //   tooltip: 'Increment',
-            //   child: Icon(Icons.add),
-            // ), // This trailing comma makes auto-formatting nicer for build methods.
+            body: _buildBodyView(),
+            bottomNavigationBar: BottomNavigationBar(
+                onTap: (int index) {
+                    print("index" + index.toString());
+
+                    if (!isLoading) {
+                        setState(() {
+                            _currentIndex = index;
+                            _fetchListData(index);
+                        });
+                    }
+                },
+                currentIndex: _currentIndex, // this will be set when a new tab is tapped
+                items: [
+                    BottomNavigationBarItem(
+                        icon: new Icon(Icons.home),
+                        title: new Text('最新'),
+                    ),
+                    BottomNavigationBarItem(
+                        icon: new Icon(Icons.event_note),
+                        title: new Text('最热'),
+                    ),
+                ],
+            ),
         );
     }
 }
