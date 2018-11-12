@@ -16,22 +16,13 @@ class Detail extends StatefulWidget {
 }
 
 class _DetailState extends State < Detail > {
-    String message = "";
     bool isReady = false;
     Map _topicData;
     List _repliesData;
 
-    // 模拟异步请求
-    Future < String > fakeRequest() async {
-        return Future.delayed(Duration(seconds: 2), () {
-            return message + " hi";
-        });
-    }
-
-    Future < void > _fetchTopicData(String id) async {
-        print("topic id is" + id);
+    Future <void> _fetchTopicData(String id) async {
         var url = "https://www.v2ex.com/api/topics/show.json?id=${id}";
-        print("topic data: " + url);
+        print("topic data url: " + url);
         var httpClient = new HttpClient();
         List data = [];
         try {
@@ -50,10 +41,9 @@ class _DetailState extends State < Detail > {
         }
     }
 
-    Future < void > _fetchTopicReplyData(String id) async {
-        print('in fetch reply data');
+    Future <void> _fetchTopicReplyData(String id) async {
         var url = "https://www.v2ex.com/api/replies/show.json?topic_id=${id}";
-        print("reply list:" + url);
+        print("reply list url:" + url);
         var httpClient = new HttpClient();
         List data = [];
         try {
@@ -63,8 +53,6 @@ class _DetailState extends State < Detail > {
             if (response.statusCode == HttpStatus.ok) {
                 var resultStr = await response.transform(utf8.decoder).join();
                 data = json.decode(resultStr);
-                print(data.length);
-                print('fetch reply success');
                 setState(() {
                     _repliesData = data;
                 });
@@ -75,15 +63,7 @@ class _DetailState extends State < Detail > {
     }
 
 
-    void _loadMore() async {
-        String msg = await fakeRequest();
-        setState(() {
-            message = msg;
-        });
-    }
-
     Widget _buildProgressIndicator() {
-        print("build progress");
         return new Padding(
             padding: const EdgeInsets.all(8.0),
                 child: new Center(
@@ -101,11 +81,10 @@ class _DetailState extends State < Detail > {
                 child: new Center(
                     child: _buildProgressIndicator(),
                 ),
-                onTap: () {
-                    print("tap");
-                }
             );
         } else {
+            List<Widget> widgetList = [];
+
             Widget titleSection = new Container(
                 padding: EdgeInsetsDirectional.fromSTEB(15.0, 10.0, 15.0, 10.0),
                 decoration: new BoxDecoration(
@@ -120,28 +99,22 @@ class _DetailState extends State < Detail > {
                 ),
             );
 
-            // FIXME: 如何渲染 HTML
-            Widget contentSection = new Container(
-                padding: EdgeInsetsDirectional.fromSTEB(15.0, 10.0, 15.0, 10.0),
-                decoration: new BoxDecoration(
-                    border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
-                ),
-                child: _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : new Text('无'),
-                // child: new Text(
-                //     _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : '无',
-                //     style: new TextStyle(
-                //         fontSize: 14.0,
-                //     ),
-                // ),
-            );
+            widgetList.add(titleSection);
+
+            if (_topicData['content_rendered'] != "") {
+                Widget contentSection = new Container(
+                    padding: EdgeInsetsDirectional.fromSTEB(0.0, 10.0, 0.0, 10.0),
+                    decoration: new BoxDecoration(
+                        border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
+                    ),
+                    child: _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : new Text('无'),
+                );
+
+                widgetList.add(contentSection);
+            }
 
             var rows = _buildReplyRows();
-            List < Widget > widgetList = [titleSection, contentSection];
-            // rows.forEach((el) {
-            //     widgetList.add(el);
-            // });
             widgetList.addAll(rows);
-            print("rows " + rows.length.toString());
 
             return new ListView(
                 children: widgetList,
@@ -149,15 +122,12 @@ class _DetailState extends State < Detail > {
         }
     }
 
-    List < Widget > _buildReplyRows() {
-        List < Widget > rows = [];
+    List <Widget> _buildReplyRows() {
+        List <Widget> rows = [];
 
         if (_repliesData == null) {
-            print('build reply row with null');
             return [];
         }
-
-        print('build reply row not null');
 
         _repliesData.forEach((el) {
             var floor = _repliesData.indexOf(el);
@@ -165,61 +135,51 @@ class _DetailState extends State < Detail > {
             var format = new DateFormat('y-MM-dd HH:mm');
             var formatDate = format.format(date);
 
-            var row = new GestureDetector(
-                onTap: () {
-                    print('tap');
-                },
-                child: new Container(
-                    padding: const EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                    decoration: new BoxDecoration(
-                        border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
-                    ),
-                    child: new Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            new Row(
-                                children: [
-                                    new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
-                                    new Expanded(
-                                        child: new Container(
-                                            margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                                                child: new Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                        new Container(
-                                                            padding: const EdgeInsets.only(bottom: 2.0),
-                                                                child: new Text(
-                                                                    el['member']['username'],
-                                                                    maxLines: null,
-                                                                    // style: new TextStyle(
-                                                                    //     fontWeight: FontWeight.bold,
-                                                                    // ),
-                                                                ),
-                                                        ),
-                                                        new Text("${floor + 1}楼 回复时间: ${formatDate}"),
-                                                        // new Text(
-                                                        //   '最后回复：' + el['last_reply_by'],
-                                                        //   style: new TextStyle(
-                                                        //     color: Colors.grey[500],
-                                                        //   ),
-                                                        // ),
-                                                    ],
-                                                )
-                                        ),
-                                    ),
-                                ],
-                            ),
-                            new Container(
-                                padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0.0),
-                                child: new Text(
-                                    el['content'],
-                                    style: new TextStyle(
-                                        fontWeight: FontWeight.bold,
+            var row = new Container(
+                padding: const EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                decoration: new BoxDecoration(
+                    border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
+                ),
+                child: new Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        new Row(
+                            children: [
+                                new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
+                                new Expanded(
+                                    child: new Container(
+                                        margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                            child: new Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                    new Container(
+                                                        padding: const EdgeInsets.only(bottom: 2.0),
+                                                            child: new Text(
+                                                                el['member']['username'],
+                                                                maxLines: null,
+                                                                // style: new TextStyle(
+                                                                //     fontWeight: FontWeight.bold,
+                                                                // ),
+                                                            ),
+                                                    ),
+                                                    new Text("${floor + 1}楼 回复时间: ${formatDate}"),
+                                                ],
+                                            )
                                     ),
                                 ),
-                            )
-                        ]
-                    )
+                            ],
+                        ),
+                        new Container(
+                            padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0.0),
+                            child: new Text(
+                                el['content'],
+                                style: new TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                ),
+                            ),
+                            // child: new HtmlView(data: "<p>" + el['content_rendered'] + "</p>"),
+                        )
+                    ]
                 )
             );
 
@@ -228,7 +188,6 @@ class _DetailState extends State < Detail > {
 
         return rows;
     }
-
 
     @override
     void initState() {
@@ -243,7 +202,6 @@ class _DetailState extends State < Detail > {
 
     @override
     Widget build(BuildContext context) {
-        print(message);
         return new Scaffold(
             appBar: new AppBar(
                 title: new Text(isReady ? _topicData['title'] : '加载中'),

@@ -1,68 +1,67 @@
+import './MemberModel.dart';
+import './NodeModel.dart';
 class TopicListItemModel {
-  String avatarLarge;
-  String name;
-  String avatarNormal;
+  Node node;
+  Member member;
+  String lastReplyBy;
+  int lastTouched;
   String title;
   String url;
-  int topics;
-  String footer;
-  String header;
-  String titleAlternative;
-  String avatarMini;
-  int stars;
-  bool root;
+  int created;
+  String content;
+  String contentRendered;
+  int lastModified;
+  int replies;
   int id;
-  String parentNodeName;
 
   TopicListItemModel(
-      {this.avatarLarge,
-      this.name,
-      this.avatarNormal,
+      {this.node,
+      this.member,
+      this.lastReplyBy,
+      this.lastTouched,
       this.title,
       this.url,
-      this.topics,
-      this.footer,
-      this.header,
-      this.titleAlternative,
-      this.avatarMini,
-      this.stars,
-      this.root,
-      this.id,
-      this.parentNodeName});
+      this.created,
+      this.content,
+      this.contentRendered,
+      this.lastModified,
+      this.replies,
+      this.id});
 
   TopicListItemModel.fromJson(Map<String, dynamic> json) {
-    avatarLarge = json['avatar_large'];
-    name = json['name'];
-    avatarNormal = json['avatar_normal'];
+    node = json['node'] != null ? new Node.fromJson(json['node']) : null;
+    member =
+        json['member'] != null ? new Member.fromJson(json['member']) : null;
+    lastReplyBy = json['last_reply_by'];
+    lastTouched = json['last_touched'];
     title = json['title'];
     url = json['url'];
-    topics = json['topics'];
-    footer = json['footer'];
-    header = json['header'];
-    titleAlternative = json['title_alternative'];
-    avatarMini = json['avatar_mini'];
-    stars = json['stars'];
-    root = json['root'];
+    created = json['created'];
+    content = json['content'];
+    contentRendered = json['content_rendered'];
+    lastModified = json['last_modified'];
+    replies = json['replies'];
     id = json['id'];
-    parentNodeName = json['parent_node_name'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['avatar_large'] = this.avatarLarge;
-    data['name'] = this.name;
-    data['avatar_normal'] = this.avatarNormal;
+    if (this.node != null) {
+      data['node'] = this.node.toJson();
+    }
+    if (this.member != null) {
+      data['member'] = this.member.toJson();
+    }
+    data['last_reply_by'] = this.lastReplyBy;
+    data['last_touched'] = this.lastTouched;
     data['title'] = this.title;
     data['url'] = this.url;
-    data['topics'] = this.topics;
-    data['footer'] = this.footer;
-    data['header'] = this.header;
-    data['title_alternative'] = this.titleAlternative;
-    data['avatar_mini'] = this.avatarMini;
-    data['stars'] = this.stars;
-    data['root'] = this.root;
+    data['created'] = this.created;
+    data['content'] = this.content;
+    data['content_rendered'] = this.contentRendered;
+    data['last_modified'] = this.lastModified;
+    data['replies'] = this.replies;
     data['id'] = this.id;
-    data['parent_node_name'] = this.parentNodeName;
     return data;
   }
 }

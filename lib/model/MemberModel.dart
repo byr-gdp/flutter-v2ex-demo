@@ -1,18 +1,18 @@
 class Member {
   String username;
-  Null website;
-  Null github;
-  Null psn;
+  String website;
+  String github;
+  String psn;
   String avatarNormal;
-  Null bio;
+  String bio;
   String url;
-  Null tagline;
-  Null twitter;
+  String tagline;
+  String twitter;
   int created;
   String avatarLarge;
   String avatarMini;
-  Null location;
-  Null btc;
+  String location;
+  String btc;
   int id;
 
   Member(
