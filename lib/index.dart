@@ -58,14 +58,6 @@ class _MyHomePageState extends State < MyHomePage > {
     ScrollController _scrollController = new ScrollController();
     bool isLoading = false;
 
-    GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey();
-
-    Future < List < int >> fakeRequest(int from, int to) async {
-        return Future.delayed(Duration(seconds: 2), () {
-            return List.generate(to - from, (i) => i + from);
-        });
-    }
-
     /**
      * 根据当前 tab 获取列表数据
      * 0: 最热，1: 最新
@@ -123,38 +115,38 @@ class _MyHomePageState extends State < MyHomePage > {
                             },
                             child: new Container(
                                 padding: const EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 5.0),
-                                    child: new Row(
-                                        children: [
-                                            new Image.network('http:' + model.member.avatarNormal, width: 40.0, height: 40.0, fit: BoxFit.fill),
-                                            new Expanded(
-                                                child: new Container(
-                                                    margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
-                                                        child: new Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                                new Container(
-                                                                    padding: const EdgeInsets.only(bottom: 2.0),
-                                                                        child: new Text(
-                                                                            el['title'],
-                                                                            maxLines: 1,
-                                                                            style: new TextStyle(
-                                                                                fontWeight: FontWeight.bold,
-                                                                            ),
+                                child: new Row(
+                                    children: [
+                                        new Image.network('http:' + model.member.avatarNormal, width: 40.0, height: 40.0, fit: BoxFit.fill),
+                                        new Expanded(
+                                            child: new Container(
+                                                margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
+                                                    child: new Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                            new Container(
+                                                                padding: const EdgeInsets.only(bottom: 2.0),
+                                                                    child: new Text(
+                                                                        el['title'],
+                                                                        maxLines: 1,
+                                                                        style: new TextStyle(
+                                                                            fontWeight: FontWeight.bold,
                                                                         ),
-                                                                ),
-                                                                new Text(
-                                                                    '最后回复：' + el['last_reply_by'],
-                                                                    style: new TextStyle(
-                                                                        color: Colors.grey[500],
                                                                     ),
+                                                            ),
+                                                            new Text(
+                                                                '最后回复：' + el['last_reply_by'],
+                                                                style: new TextStyle(
+                                                                    color: Colors.grey[500],
                                                                 ),
-                                                            ],
-                                                        )
-                                                ),
+                                                            ),
+                                                        ],
+                                                    )
                                             ),
-                                            new Text(el['replies'].toString()),
-                                        ],
-                                    ),
+                                        ),
+                                        new Text(el['replies'].toString()),
+                                    ],
+                                ),
                             )
                         );
                     }
@@ -170,7 +162,6 @@ class _MyHomePageState extends State < MyHomePage > {
                 child: new Center(
                     child: new Opacity(
                         opacity: isLoading ? 1.0 : 0.0,
-                        // opacity: 0.8,
                         child: new CircularProgressIndicator(),
                     ),
                 ),
@@ -257,7 +248,6 @@ class _MyHomePageState extends State < MyHomePage > {
             ),
             body: _buildBodyView(),
             drawer: _buildDrawer(),
-            // endDrawer: _buildEndDrawer(),
             bottomNavigationBar: BottomNavigationBar(
                 onTap: (int index) {
                     if (isLoading || index == _currentIndex) {
