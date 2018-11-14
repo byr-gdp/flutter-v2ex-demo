@@ -2,6 +2,10 @@
 
 A Flutter demo project for V2EX.
 
+## 已知问题
+
+- 详情页内容渲染是通过 `flutter_html_view` 进行渲染，但 `@someone` 解析生成的 `href` 是没有 `host` 的，所以 `Could not launch xxx`。在 GitHub master 最新的提交中，增加了 `baseURL` 选项（尽管是针对图片设置的，对 `a` 标签没有处理），但最新的 0.5.8 并没有包含对应代码。于是通过 git 方式添加该依赖，但 `flutter_html_view` 的 `pubspec.yaml` 中将 `video_player` 注释了导致无法编译通过。
+
 ## Todo
 
 ### 页面
