@@ -3,6 +3,8 @@ import 'package:flutter_html_view/flutter_html_view.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import './model/TopicDetailModel.dart';
+import './model/TopicReplyModel.dart';
 
 class Detail extends StatefulWidget {
     Detail({
@@ -84,6 +86,7 @@ class _DetailState extends State < Detail > {
             );
         } else {
             List<Widget> widgetList = [];
+            var model = new TopicDetailModel.fromJson(_topicData);
 
             Widget titleSection = new Container(
                 padding: EdgeInsetsDirectional.fromSTEB(15.0, 10.0, 15.0, 10.0),
@@ -91,7 +94,7 @@ class _DetailState extends State < Detail > {
                     border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
                 ),
                 child: new Text(
-                    _topicData != null ? _topicData['title'] : '加载中',
+                    _topicData != null ? model.title : '加载中',
                     style: new TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20.0,
@@ -107,7 +110,7 @@ class _DetailState extends State < Detail > {
                     decoration: new BoxDecoration(
                         border: new Border(bottom:BorderSide(color: Theme.of(context).dividerColor)),
                     ),
-                    child: _topicData != null ? new HtmlView(data: _topicData['content_rendered']) : new Text('无'),
+                    child: _topicData != null ? new HtmlView(data: model.contentRendered) : new Text('无'),
                 );
 
                 widgetList.add(contentSection);
@@ -130,8 +133,9 @@ class _DetailState extends State < Detail > {
         }
 
         _repliesData.forEach((el) {
+            var model = new TopicReplyModel.fromJson(el);
             var floor = _repliesData.indexOf(el);
-            var date = new DateTime.fromMillisecondsSinceEpoch(el['created'] * 1000);
+            var date = new DateTime.fromMillisecondsSinceEpoch(model.created * 1000);
             var format = new DateFormat('y-MM-dd HH:mm');
             var formatDate = format.format(date);
 
@@ -145,7 +149,7 @@ class _DetailState extends State < Detail > {
                     children: [
                         new Row(
                             children: [
-                                new Image.network('http:' + el['member']['avatar_normal'], width: 40.0, height: 40.0, fit: BoxFit.fill),
+                                new Image.network('http:' + model.member.avatarNormal, width: 40.0, height: 40.0, fit: BoxFit.fill),
                                 new Expanded(
                                     child: new Container(
                                         margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 0.0),
@@ -155,7 +159,7 @@ class _DetailState extends State < Detail > {
                                                     new Container(
                                                         padding: const EdgeInsets.only(bottom: 2.0),
                                                             child: new Text(
-                                                                el['member']['username'],
+                                                                model.member.username,
                                                                 maxLines: null,
                                                                 // style: new TextStyle(
                                                                 //     fontWeight: FontWeight.bold,
@@ -172,7 +176,7 @@ class _DetailState extends State < Detail > {
                         new Container(
                             padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0.0),
                             child: new Text(
-                                el['content'],
+                                model.content,
                                 style: new TextStyle(
                                     fontWeight: FontWeight.bold,
                                 ),

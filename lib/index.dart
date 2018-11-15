@@ -127,7 +127,7 @@ class _MyHomePageState extends State < MyHomePage > {
                                                             new Container(
                                                                 padding: const EdgeInsets.only(bottom: 2.0),
                                                                     child: new Text(
-                                                                        el['title'],
+                                                                        model.title,
                                                                         maxLines: 1,
                                                                         style: new TextStyle(
                                                                             fontWeight: FontWeight.bold,
@@ -135,7 +135,7 @@ class _MyHomePageState extends State < MyHomePage > {
                                                                     ),
                                                             ),
                                                             new Text(
-                                                                '最后回复：' + el['last_reply_by'],
+                                                                '最后回复：' + model.lastReplyBy,
                                                                 style: new TextStyle(
                                                                     color: Colors.grey[500],
                                                                 ),
