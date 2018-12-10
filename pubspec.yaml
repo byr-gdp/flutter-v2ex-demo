@@ -21,6 +21,7 @@ dependencies:
   cupertino_icons: ^0.1.2
   flutter_html_view:
   intl: "^0.15.0"
+  ago:
 
 
 dev_dependencies:

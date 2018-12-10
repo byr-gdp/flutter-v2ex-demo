@@ -3,6 +3,7 @@ import 'package:flutter_html_view/flutter_html_view.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:ago/ago.dart';
 import './model/TopicDetailModel.dart';
 import './model/TopicReplyModel.dart';
 
@@ -136,8 +137,9 @@ class _DetailState extends State < Detail > {
             var model = new TopicReplyModel.fromJson(el);
             var floor = _repliesData.indexOf(el);
             var date = new DateTime.fromMillisecondsSinceEpoch(model.created * 1000);
-            var format = new DateFormat('y-MM-dd HH:mm');
-            var formatDate = format.format(date);
+            // var format = new DateFormat('y-MM-dd HH:mm');
+            // var formatDate = format.format(date);
+            var formatDate = ago(date, new DateTime.now());
 
             var row = new Container(
                 padding: const EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
